@@ -58,6 +58,36 @@ async function run() {
       const result = await schoolCollection.insertOne(newSchool);
       res.send(result);
     });
+
+    // get schools
+    app.get("/listSchools", async (req, res) => {
+      const { latitude, longitude } = req.query;
+
+      if (!latitude || !longitude) {
+        return res
+          .status(400)
+          .send({ message: "Latitude and longitude required." });
+      }
+
+      const userLocation = {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+      };
+
+      const schools = await schoolCollection.find().toArray();
+      const schoolsWithDistance = schools.map((school) => ({
+        ...school,
+        distance: geolib.getDistance(userLocation, {
+          latitude: school.latitude,
+          longitude: school.longitude,
+        }),
+      }));
+
+      const sorted = schoolsWithDistance.sort(
+        (a, b) => a.distance - b.distance
+      );
+      res.send(sorted);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
