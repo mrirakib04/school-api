@@ -36,6 +36,28 @@ async function run() {
     // Connections
     const database = client.db("school_api");
     const schoolssCollection = database.collection("schools");
+
+    // add school posting
+    app.post("/addSchool", async (req, res) => {
+      const { name, address, latitude, longitude } = req.body;
+
+      if (!name || !address || !latitude || !longitude) {
+        return res.status(400).send({ message: "All fields are required." });
+      }
+
+      if (
+        typeof name !== "string" ||
+        typeof address !== "string" ||
+        typeof latitude !== "number" ||
+        typeof longitude !== "number"
+      ) {
+        return res.status(400).send({ message: "Invalid input types." });
+      }
+
+      const newSchool = { name, address, latitude, longitude };
+      const result = await schoolCollection.insertOne(newSchool);
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
